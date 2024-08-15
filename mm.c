@@ -67,6 +67,8 @@ void mm_free(void *ptr) ;
 void *mm_realloc(void *ptr, size_t size) ;
 static void *extend_heap(size_t words);
 static char* heap_listp;
+
+static char* fit = NULL;
 /* 
  * mm_init - initialize the malloc package.
  */
@@ -185,16 +187,30 @@ static void *coalesce(void *bp)
         PUT(FTRP(NEXT_BLKP(bp)),PACK(size,0));
         bp = PREV_BLKP(bp);
     }
+    fit = bp;
     return bp;
 }
 
 static void *find_fit(size_t asize)
 {
+    // void *bp;
+    // for ( bp = heap_listp; GET_SIZE(HDRP(bp)) > 0 ; bp = NEXT_BLKP(bp))
+    // {
+    //     if(!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp))))
+    //         return bp;
+    // }
+    // return NULL;
+
     void *bp;
-    for ( bp = heap_listp; GET_SIZE(HDRP(bp)) > 0 ; bp = NEXT_BLKP(bp))
+    if ( (bp = fit) == NULL)
+        bp = heap_listp;
+    
+    for ( ; GET_SIZE(HDRP(bp)) > 0 ; bp = NEXT_BLKP(bp))
     {
-        if(!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp))))
+        if(!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp)))){
+            // fit = bp;
             return bp;
+        }
     }
     return NULL;
 }
